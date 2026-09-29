@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#5C41B2">
+<title>AI-powered Insights — Trend Darts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --red:#FF0044; --orange:#FF8732; --dark-blue:#033CAA; --light-blue:#0096FA;
+  --dark-green:#03C878; --light-green:#AFE14B; --purple:#5C41B2;
+  --accent:#5C41B2; --bg:#F6F8FC; --card:#FFFFFF; --text:#172033;
+  --muted:#6C7485; --border:#DCE2EB; --shadow:0 10px 30px rgba(23,32,51,.08);
+}
+* { box-sizing:border-box; }
+html { -webkit-text-size-adjust:100%; }
+body {
+  margin:0; font-family:"Libre Franklin", Arial, sans-serif; background:var(--bg); color:var(--text);
+  -webkit-tap-highlight-color:transparent;
+  padding:max(12px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right))
+          max(18px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));
+}
+button,.board-shell,svg,.legend-chip{ touch-action:manipulation; }
+.app{ width:min(760px,100%); margin:0 auto 22px; }
+.hero{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin:4px 0 12px; }
+.eyebrow{ font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.14em; color:var(--red); margin-bottom:4px; }
+h1{ margin:0; color:var(--accent); font-weight:800; letter-spacing:-.03em; line-height:1.05; font-size:clamp(24px,7vw,36px); }
+.restart{ flex:0 0 auto; width:46px; height:46px; border:1px solid var(--border); border-radius:12px; background:#fff; color:var(--accent); font-size:22px; font-weight:800; box-shadow:var(--shadow); }
+.restart:active{ transform:scale(.97); }
+
+.stats{ display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-bottom:10px; }
+.stat{ background:var(--card); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:10px 10px 11px; }
+.stat:nth-child(1){ border-top:4px solid var(--light-blue); }
+.stat:nth-child(2){ border-top:4px solid var(--red); }
+.stat:nth-child(3){ border-top:4px solid var(--light-green); }
+.stat-label{ color:var(--muted); font-size:9px; line-height:1.2; text-transform:uppercase; font-weight:800; letter-spacing:.11em; }
+.stat-value{ margin-top:4px; font-weight:800; line-height:1; font-size:clamp(18px,5vw,24px); color:var(--accent); white-space:nowrap; }
+.stat:nth-child(2) .stat-value{ color:var(--red); } .stat:nth-child(3) .stat-value{ color:var(--orange); }
+
+.trend-card{ background:#fff; border:1px solid var(--border); border-left:6px solid var(--red); border-radius:16px; box-shadow:var(--shadow); padding:15px 14px; text-align:center; margin-bottom:10px; }
+.dart-label{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.15em; color:var(--red); }
+.trend-name{ margin-top:7px; font-size:clamp(18px,5.3vw,26px); line-height:1.22; font-weight:800; overflow-wrap:anywhere; }
+.trend-hint{ margin-top:7px; color:var(--muted); font-size:12px; line-height:1.4; }
+
+.status-strip{ display:flex; align-items:center; justify-content:center; gap:8px; background:#fff; border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:10px 12px; margin-bottom:10px; min-height:46px; text-align:center; }
+.status-pill{ padding:5px 10px; border-radius:999px; font-size:11px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; background:#EEF3F8; color:var(--accent); border:1px solid #E1E8F1; }
+.status-pill.ready{ background:#EEF4FF; color:var(--accent); }
+.status-pill.good{ background:#F1F9E5; color:#4D7A12; }
+.status-pill.bad{ background:#FFE9EF; color:#C41F4B; }
+.status-pill.charge{ background:#FFF0E4; color:#B8600A; }
+.status-text{ font-size:12px; color:var(--muted); line-height:1.3; font-weight:600; }
+
+.power-card{ background:#fff; border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow); padding:11px 12px; margin-bottom:10px; }
+.power-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:8px; }
+.power-title{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); }
+.power-value{ font-size:12px; font-weight:800; color:var(--accent); }
+.power-track{ position:relative; height:12px; border-radius:999px; background:linear-gradient(90deg,#E8EEF6 0 20%, #AFE14B 20% 55%, #FF8732 55% 80%, #FF0044 80% 100%); overflow:visible; }
+.power-marker{ position:absolute; top:50%; left:50%; width:9px; height:20px; border-radius:5px; background:#172033; border:2px solid #fff; box-shadow:0 2px 5px rgba(0,0,0,.2); transform:translate(-50%,-50%); }
+.power-note{ margin-top:7px; font-size:10px; line-height:1.35; color:var(--muted); text-align:center; }
+
+.board-card{ background:#fff; border:1px solid var(--border); border-radius:18px; box-shadow:var(--shadow); padding:11px 8px 12px; position:relative; overflow:hidden; }
+.board-card::before{ content:""; position:absolute; left:0; right:0; top:0; height:5px; background:var(--accent); }
+.board-title{ margin:5px 0 0; text-align:center; font-size:16px; font-weight:800; color:var(--accent); }
+.board-sub{ text-align:center; font-size:10px; color:var(--muted); margin:3px 0 6px; }
+.board-shell{ position:relative; width:min(92vw,420px); max-width:100%; margin:0 auto; }
+.dartboard{ display:block; width:100%; user-select:none; cursor:pointer; }
+.zone{ transition:filter .15s ease, transform .15s ease, opacity .15s ease; transform-origin:150px 150px; }
+.zone.dimmed{ opacity:.70; } .zone.selected{ filter:brightness(1.04); stroke:#172033 !important; stroke-width:7 !important; }
+.zone.correct-glow{ filter:brightness(1.06); stroke:#AFE14B !important; stroke-width:9 !important; }
+.zone.wrong-glow{ filter:brightness(1.03); stroke:#FF0044 !important; stroke-width:9 !important; }
+
+.throw-lane{ position:absolute; left:0; right:0; bottom:0; top:0; pointer-events:none; overflow:hidden; }
+.dart{ position:absolute; left:50%; bottom:8px; width:48px; height:48px; transform:translateX(-50%) translateY(0) rotate(-28deg); opacity:0; filter:drop-shadow(0 5px 8px rgba(0,0,0,.15)); }
+.dart.fly{ animation:fly .56s cubic-bezier(.21,.81,.29,1) forwards; }
+@keyframes fly{ 0%{opacity:1; transform:translateX(-50%) translate(var(--startX),var(--startY)) rotate(-30deg) scale(.9);} 100%{opacity:1; transform:translateX(-50%) translate(var(--endX),var(--endY)) rotate(var(--rot)) scale(1);} }
+.impact{ position:absolute; width:26px; height:26px; border-radius:50%; border:3px solid rgba(255,255,255,.98); transform:translate(-50%,-50%) scale(.2); opacity:0; pointer-events:none; }
+.impact.show{ animation:impact .38s ease-out forwards; }
+@keyframes impact{ 0%{opacity:1; transform:translate(-50%,-50%) scale(.2);} 100%{opacity:0; transform:translate(-50%,-50%) scale(2.4);} }
+.marker{ pointer-events:none; animation:markerPop .22s ease-out both; transform-origin:center; }
+@keyframes markerPop{ from{opacity:.22; transform:scale(2.2);} to{opacity:1; transform:scale(1);} }
+
+.legend{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:10px 4px 0; }
+.legend-chip{ border:1px solid var(--border); background:#fff; border-radius:14px; padding:10px 10px 10px 14px; box-shadow:var(--shadow); position:relative; text-align:left; min-height:58px; display:flex; align-items:center; font-size:12px; font-weight:800; color:var(--text); }
+.legend-chip::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:6px; border-radius:14px 0 0 14px; background:var(--chip); }
+.legend-chip.selected{ outline:3px solid var(--accent); }
+.legend-chip.correct{ outline:3px solid #AFE14B; }
+.legend-chip.wrong{ outline:3px solid #FF0044; }
+.legend-chip small{ display:block; margin-top:2px; color:var(--muted); font-weight:600; }
+
+.controls{ margin-top:10px; display:grid; gap:10px; }
+.throw-btn{ width:100%; border:0; border-radius:15px; background:var(--red); color:#fff; min-height:56px; font-size:16px; font-weight:800; box-shadow:0 10px 22px rgba(255,0,68,.22); transition:transform .08s ease, filter .15s ease, opacity .15s ease; }
+.throw-btn:active{ transform:scale(.99); } .throw-btn.disabled{ opacity:.45; box-shadow:none; }
+.mini-note{ text-align:center; color:var(--muted); font-size:11px; margin-top:-3px; line-height:1.3; }
+
+.end{ margin-top:12px; background:var(--accent); color:#fff; border-radius:16px; padding:18px; text-align:center; box-shadow:var(--shadow); }
+.end-kicker{ font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.14em; color:var(--light-green); }
+.final-score{ font-size:44px; line-height:1; font-weight:800; margin:8px 0 7px; }
+.final-rank{ font-size:16px; font-weight:800; margin-bottom:6px; }
+.final-msg{ font-size:12px; color:#EDF4FF; line-height:1.45; }
+.play-again{ margin-top:12px; width:100%; min-height:48px; border:0; border-radius:13px; background:#fff; color:var(--accent); font-weight:800; font-size:15px; }
+
+.hidden{ display:none !important; }
+.confetti{ position:absolute; left:50%; top:56%; width:7px; height:12px; border-radius:2px; pointer-events:none; z-index:6; animation:confetti .82s ease-out forwards; }
+@keyframes confetti{ from{opacity:1; transform:translate(-50%,-50%) rotate(0deg)} to{opacity:0; transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot));} }
+.board-card.shake{ animation:shake .24s linear; } @keyframes shake{ 0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)} }
+.board-card.flash{ animation:flash .42s ease-out; } @keyframes flash{ 0%{box-shadow:0 0 0 0 rgba(175,225,75,.75), var(--shadow)}100%{box-shadow:0 0 0 18px rgba(175,225,75,0), var(--shadow)} }
+
+@media (max-width:460px){ .legend{ grid-template-columns:1fr; } }
+@media (max-width:380px){ body{ padding-left:7px; padding-right:7px; } .stat{ padding:9px 7px 10px; } .stat-label{ font-size:7.5px; } .throw-btn{ min-height:54px; font-size:15px; } }
+@media (prefers-reduced-motion:reduce){ *,*::before,*::after{ animation-duration:.001ms !important; animation-iteration-count:1 !important; } }
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="hero">
+    <div><div class="eyebrow">Trend Darts</div><h1>AI-powered Insights</h1></div>
+    <button class="restart" id="restartBtn" type="button" aria-label="Restart">↻</button>
+  </header>
+
+  <section class="stats">
+    <div class="stat"><div class="stat-label">Trend</div><div class="stat-value" id="progress">1 / 6</div></div>
+    <div class="stat"><div class="stat-label">Score</div><div class="stat-value"><span id="score">0</span> / 6</div></div>
+    <div class="stat"><div class="stat-label">Streak</div><div class="stat-value" id="streak">0 🔥</div></div>
+  </section>
+
+  <section class="trend-card">
+    <div class="dart-label">Your dart</div>
+    <div class="trend-name" id="trendName">Loading trend…</div>
+    <div class="trend-hint">Tap a wedge to aim, then hold the button and release to throw.</div>
+  </section>
+
+  <section class="status-strip">
+    <span class="status-pill ready" id="statusPill">Aim</span>
+    <span class="status-text" id="statusText">Choose the right value lever.</span>
+  </section>
+
+  <section class="power-card">
+    <div class="power-top">
+      <div class="power-title">Dart intensity</div>
+      <div class="power-value" id="powerValue">50%</div>
+    </div>
+    <div class="power-track"><div class="power-marker" id="powerMarker"></div></div>
+    <div class="power-note">Intensity changes the throw feel only. Scoring stays 1 point for a correct classification.</div>
+  </section>
+
+  <section class="board-card" id="boardCard">
+    <div class="board-title">AI-powered Insights</div>
+    <div class="board-sub">Aim for the correct value lever</div>
+
+    <div class="board-shell" id="boardShell">
+      <svg class="dartboard" id="dartboard" viewBox="0 0 300 300" aria-label="Dartboard">
+        <circle cx="150" cy="150" r="132" fill="#F3F6FB"></circle><path class="zone zone-0" data-zone="Continuous Monitoring" d="M 150.00 150.00 L 150.00 32.00 A 118.00 118.00 0 0 1 268.00 150.00 Z" fill="#FF1FCB" stroke="#FFFFFF" stroke-width="5"></path><path class="zone zone-1" data-zone="Anticipation" d="M 150.00 150.00 L 268.00 150.00 A 118.00 118.00 0 0 1 150.00 268.00 Z" fill="#A58AC8" stroke="#FFFFFF" stroke-width="5"></path><path class="zone zone-2" data-zone="Greater Completeness" d="M 150.00 150.00 L 150.00 268.00 A 118.00 118.00 0 0 1 32.00 150.00 Z" fill="#7D21FF" stroke="#FFFFFF" stroke-width="5"></path><path class="zone zone-3" data-zone="On-Demand Access" d="M 150.00 150.00 L 32.00 150.00 A 118.00 118.00 0 0 1 150.00 32.00 Z" fill="#3EAF1F" stroke="#FFFFFF" stroke-width="5"></path>
+        <text x="200.06" y="99.94" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="800">Monitoring</text><text x="200.06" y="200.06" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="800">Anticipation</text><text x="99.94" y="200.06" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="800">Completeness</text><text x="99.94" y="99.94" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="800">On-demand</text>
+        <g id="markers"></g>
+      </svg>
+
+      <div class="throw-lane">
+        <svg class="dart" id="dartSprite" viewBox="0 0 64 64" aria-hidden="true">
+          <polygon points="10,28 2,32 10,36" fill="#172033"></polygon>
+          <rect x="10" y="28" width="28" height="8" rx="4" fill="#5C41B2"></rect>
+          <polygon points="38,24 52,20 46,32 52,44 38,40" fill="#5C41B2"></polygon>
+          <line x1="42" y1="22" x2="42" y2="42" stroke="#FFFFFF" stroke-width="2"></line>
+          <line x1="47" y1="21" x2="47" y2="43" stroke="#FFFFFF" stroke-width="2"></line>
+        </svg>
+        <div class="impact hidden" id="impact"></div>
+      </div>
+    </div>
+
+    <div class="legend" id="legend"></div>
+
+    <div class="controls">
+      <button class="throw-btn disabled" id="throwBtn" type="button">Hold to charge &amp; release to throw</button>
+      <div class="mini-note">Tap a wedge or the legend chip to aim · then hold and release</div>
+    </div>
+  </section>
+
+  <section class="end hidden" id="endScreen">
+    <div class="end-kicker">Game complete</div>
+    <div class="final-score" id="finalScore">0 / 6</div>
+    <div class="final-rank" id="finalRank">Sharp Shooter</div>
+    <div class="final-msg" id="finalMessage">Nice round.</div>
+    <button class="play-again" id="playAgainBtn" type="button">Play again</button>
+  </section>
+</main>
+
+<script>
+(() => {
+  const categories = [{"name": "Continuous Monitoring", "short": "Monitoring", "color": "#FF1FCB"}, {"name": "Anticipation", "short": "Anticipation", "color": "#A58AC8"}, {"name": "Greater Completeness", "short": "Completeness", "color": "#7D21FF"}, {"name": "On-Demand Access", "short": "On-demand", "color": "#3EAF1F"}];
+  const trends = [{"trend": "AI-powered continuous monitoring of competitor assets and clinical trials", "cls": "Continuous Monitoring"}, {"trend": "AI-generated intelligence alerts, dashboards and reports", "cls": "On-Demand Access"}, {"trend": "AI-powered continuous monitoring of therapeutic evidence landscapes", "cls": "Continuous Monitoring"}, {"trend": "AI-guided detection and prioritization of regulatory and policy changes", "cls": "Continuous Monitoring"}, {"trend": "AI-powered synthesis of HCP conversations and field medical insights", "cls": "Greater Completeness"}, {"trend": "AI-supported infectious disease forecasting and scenario modelling", "cls": "Anticipation"}];
+  const hitPoints = [{"name": "Continuous Monitoring", "x": 190.05, "y": 109.95}, {"name": "Anticipation", "x": 190.05, "y": 190.05}, {"name": "Greater Completeness", "x": 109.95, "y": 190.05}, {"name": "On-Demand Access", "x": 109.95, "y": 109.95}];
+
+  const progressEl = document.getElementById("progress");
+  const scoreEl = document.getElementById("score");
+  const streakEl = document.getElementById("streak");
+  const trendNameEl = document.getElementById("trendName");
+  const statusPill = document.getElementById("statusPill");
+  const statusText = document.getElementById("statusText");
+  const powerValueEl = document.getElementById("powerValue");
+  const powerMarker = document.getElementById("powerMarker");
+  const board = document.getElementById("dartboard");
+  const boardCard = document.getElementById("boardCard");
+  const boardShell = document.getElementById("boardShell");
+  const throwBtn = document.getElementById("throwBtn");
+  const restartBtn = document.getElementById("restartBtn");
+  const playAgainBtn = document.getElementById("playAgainBtn");
+  const endScreen = document.getElementById("endScreen");
+  const finalScoreEl = document.getElementById("finalScore");
+  const finalRankEl = document.getElementById("finalRank");
+  const finalMessageEl = document.getElementById("finalMessage");
+  const markers = document.getElementById("markers");
+  const dartSprite = document.getElementById("dartSprite");
+  const impact = document.getElementById("impact");
+  const legend = document.getElementById("legend");
+
+  const zoneEls = {};
+  categories.forEach((cat, i) => { zoneEls[cat.name] = board.querySelector(".zone-" + i); });
+
+  let queue = [], index = 0, score = 0, streak = 0;
+  let selectedZone = null, power = 50, chargeRAF = null, chargeStart = 0;
+  let isCharging = false, locked = false;
+  const reducedMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function buildLegend() {
+    legend.innerHTML = "";
+    categories.forEach(cat => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "legend-chip";
+      chip.dataset.zone = cat.name;
+      chip.style.setProperty("--chip", cat.color);
+      chip.innerHTML = `<div><div>${cat.name}</div><small>Tap to aim</small></div>`;
+      chip.addEventListener("click", () => selectZone(cat.name));
+      legend.appendChild(chip);
+    });
+  }
+
+  function shuffle(arr) {
+    const copy = arr.slice();
+    for(let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+  function currentTrend() { return queue[index]; }
+  function chip(zone) { return [...legend.querySelectorAll(".legend-chip")].find(el => el.dataset.zone === zone); }
+
+  function setStatus(type, text) {
+    statusPill.className = "status-pill " + type;
+    statusPill.textContent = type==="good" ? "Hit" : type==="bad" ? "Miss" : type==="charge" ? "Charge" : "Aim";
+    statusText.textContent = text;
+  }
+
+  function resetBoardVisuals() {
+    Object.values(zoneEls).forEach(el => el.classList.remove("selected","dimmed","correct-glow","wrong-glow"));
+    [...legend.querySelectorAll(".legend-chip")].forEach(el => el.classList.remove("selected","correct","wrong"));
+    markers.replaceChildren();
+    boardCard.querySelectorAll(".confetti").forEach(el => el.remove());
+    boardCard.classList.remove("shake","flash");
+    impact.className = "impact hidden";
+    dartSprite.classList.remove("fly");
+    dartSprite.style.opacity = "0";
+  }
+
+  function renderSelection() {
+    Object.entries(zoneEls).forEach(([name, el]) => {
+      el.classList.remove("selected","dimmed");
+      const chipEl = chip(name);
+      chipEl && chipEl.classList.remove("selected");
+      if (selectedZone) {
+        if (name === selectedZone) {
+          el.classList.add("selected");
+          chipEl && chipEl.classList.add("selected");
+        } else {
+          el.classList.add("dimmed");
+        }
+      }
+    });
+    throwBtn.classList.toggle("disabled", !selectedZone || locked);
+  }
+
+  function startPowerLoop() {
+    stopPowerLoop();
+    if (reducedMotion) {
+      power = 75; powerMarker.style.left = "75%"; powerValueEl.textContent = "75%"; return;
+    }
+    chargeStart = performance.now();
+    function tick(now) {
+      if (!isCharging) return;
+      const t = (now - chargeStart) / 800;
+      power = Math.round(10 + 90 * (0.5 + 0.5 * Math.sin(t)));
+      powerMarker.style.left = power + "%";
+      powerValueEl.textContent = power + "%";
+      chargeRAF = requestAnimationFrame(tick);
+    }
+    chargeRAF = requestAnimationFrame(tick);
+  }
+  function stopPowerLoop() { if (chargeRAF) cancelAnimationFrame(chargeRAF); chargeRAF = null; }
+
+  function clearSelectionForNextTurn() { selectedZone = null; renderSelection(); }
+
+  function renderTurn() {
+    locked = false; isCharging = false; stopPowerLoop(); resetBoardVisuals(); clearSelectionForNextTurn();
+    endScreen.classList.add("hidden");
+    trendNameEl.textContent = currentTrend().trend;
+    progressEl.textContent = (index + 1) + " / " + queue.length;
+    scoreEl.textContent = score;
+    streakEl.textContent = streak + " 🔥";
+    setStatus("ready", "Choose the right value lever.");
+    power = 50; powerMarker.style.left = "50%"; powerValueEl.textContent = "50%";
+    throwBtn.textContent = "Hold to charge & release to throw";
+  }
+
+  function startGame() { queue = shuffle(trends); index = 0; score = 0; streak = 0; renderTurn(); }
+
+  function selectZone(zone) {
+    if (locked) return;
+    selectedZone = zone;
+    renderSelection();
+    setStatus("ready", zone + " selected. Hold the button to charge, then release.");
+    if ("vibrate" in navigator) { try { navigator.vibrate(10); } catch(e) {} }
+  }
+
+  function detectSector(evt) {
+    const rect = board.getBoundingClientRect();
+    const x = (evt.clientX - rect.left) * 300 / rect.width;
+    const y = (evt.clientY - rect.top) * 300 / rect.height;
+    const dx = x - 150, dy = y - 150;
+    const r = Math.sqrt(dx*dx + dy*dy);
+    if (r > 118) return null;
+    let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+    angle = (angle + 450) % 360;
+    const step = 360 / categories.length;
+    const idx = Math.min(categories.length - 1, Math.floor(angle / step));
+    return categories[idx].name;
+  }
+
+  function getTargetPoint(zone) {
+    return hitPoints.find(p => p.name === zone) || {x:150, y:150};
+  }
+
+  function addMarker(x, y, correct) {
+    const ns = "http://www.w3.org/2000/svg";
+    const g = document.createElementNS(ns,"g");
+    g.setAttribute("class","marker");
+    const outer = document.createElementNS(ns,"circle");
+    outer.setAttribute("cx",x); outer.setAttribute("cy",y);
+    outer.setAttribute("r", Math.max(8, Math.min(13, 7 + power / 18)));
+    outer.setAttribute("fill", correct ? "#AFE14B" : "#FF0044");
+    outer.setAttribute("stroke","#FFFFFF"); outer.setAttribute("stroke-width","4");
+    const inner = document.createElementNS(ns,"circle");
+    inner.setAttribute("cx",x); inner.setAttribute("cy",y);
+    inner.setAttribute("r","2.5"); inner.setAttribute("fill","#172033");
+    g.append(outer, inner); markers.appendChild(g);
+  }
+
+  function burstConfetti() {
+    const colors = ["#FF0044","#FF8732","#033CAA","#0096FA","#03C878","#AFE14B","#5C41B2"];
+    for(let i=0;i<22;i++) {
+      const piece = document.createElement("span");
+      piece.className = "confetti"; piece.style.background = colors[i % colors.length];
+      const angle = (Math.PI * 2 * i / 22) + Math.random() * 0.3;
+      const distance = 75 + Math.random() * 110;
+      piece.style.setProperty("--dx", (Math.cos(angle) * distance) + "px");
+      piece.style.setProperty("--dy", (Math.sin(angle) * distance) + "px");
+      piece.style.setProperty("--rot", (Math.random()*520 - 260) + "deg");
+      boardCard.appendChild(piece);
+      setTimeout(() => piece.remove(), 900);
+    }
+  }
+
+  function animateThrow() {
+    const target = getTargetPoint(selectedZone);
+    const boardRect = boardShell.getBoundingClientRect();
+    const targetX = (target.x / 300) * boardRect.width;
+    const targetY = (target.y / 300) * boardRect.height;
+    const endX = targetX - boardRect.width / 2;
+    const endY = targetY - boardRect.height + 18;
+    dartSprite.style.setProperty("--startX", "0px");
+    dartSprite.style.setProperty("--startY", "10px");
+    dartSprite.style.setProperty("--endX", endX + "px");
+    dartSprite.style.setProperty("--endY", endY + "px");
+    dartSprite.style.setProperty("--rot", (-38 + power * 0.6).toFixed(1) + "deg");
+    dartSprite.classList.remove("fly");
+    void dartSprite.offsetWidth;
+    dartSprite.classList.add("fly");
+    dartSprite.style.opacity = "1";
+    setTimeout(() => {
+      const correct = selectedZone === currentTrend().cls;
+      addMarker(target.x, target.y, correct);
+      impact.style.left = (target.x / 300 * 100) + "%";
+      impact.style.top = (target.y / 300 * 100) + "%";
+      impact.style.borderColor = correct ? "#AFE14B" : "#FF0044";
+      impact.className = "impact show";
+    }, reducedMotion ? 40 : 420);
+  }
+
+  function showResult() {
+    const item = currentTrend();
+    const correct = selectedZone === item.cls;
+    const selectedChip = chip(selectedZone);
+    const correctChip = chip(item.cls);
+
+    if (correct) {
+      score += 1; streak += 1;
+      zoneEls[selectedZone].classList.add("correct-glow");
+      selectedChip && selectedChip.classList.add("correct");
+      boardCard.classList.remove("flash"); void boardCard.offsetWidth; boardCard.classList.add("flash");
+      burstConfetti();
+      setStatus("good", streak >= 3 ? "Bullseye! +1 · " + streak + " streak 🔥" : "Bullseye! +1");
+      if ("vibrate" in navigator) { try { navigator.vibrate(25); } catch(e) {} }
+    } else {
+      streak = 0;
+      zoneEls[selectedZone].classList.add("wrong-glow");
+      zoneEls[item.cls].classList.add("correct-glow");
+      selectedChip && selectedChip.classList.add("wrong");
+      correctChip && correctChip.classList.add("correct");
+      boardCard.classList.remove("shake"); void boardCard.offsetWidth; boardCard.classList.add("shake");
+      setStatus("bad", "Miss · 0");
+      if ("vibrate" in navigator) { try { navigator.vibrate([18,24,18]); } catch(e) {} }
+    }
+    scoreEl.textContent = score;
+    streakEl.textContent = streak + " 🔥";
+    throwBtn.textContent = index === queue.length - 1 ? "See final score" : "Next dart";
+  }
+
+  function finishGame() {
+    resetBoardVisuals(); clearSelectionForNextTurn(); endScreen.classList.remove("hidden");
+    trendNameEl.textContent = "Game complete 🎯";
+    progressEl.textContent = queue.length + " / " + queue.length;
+    finalScoreEl.textContent = score + " / " + queue.length;
+    const pct = score / queue.length;
+    let rank = "Warm-Up Player", msg = "Shuffle and take another shot.";
+    if (pct === 1) { rank = "Trend Sniper 🎯"; msg = "Perfect round — every trend landed exactly right."; }
+    else if (pct >= .8) { rank = "Sharp Shooter"; msg = "Excellent run — you know this pillar very well."; }
+    else if (pct >= .6) { rank = "Steady Aim"; msg = "Strong round — just a few classifications to revisit."; }
+    finalRankEl.textContent = rank; finalMessageEl.textContent = msg;
+    setStatus("ready", "Game complete.");
+  }
+
+  function nextOrThrow() {
+    if (locked) {
+      if (index >= queue.length - 1) finishGame();
+      else { index += 1; renderTurn(); }
+    }
+  }
+
+  function startCharging(evt) {
+    if (locked) return;
+    if (!selectedZone) { setStatus("bad", "Pick a value lever first."); return; }
+    evt.preventDefault();
+    isCharging = true;
+    setStatus("charge", "Charging… release to throw.");
+    startPowerLoop();
+  }
+
+  function releaseThrow(evt) {
+    if (!isCharging || locked) return;
+    evt.preventDefault();
+    isCharging = false;
+    stopPowerLoop();
+    locked = true;
+    renderSelection();
+    animateThrow();
+    setTimeout(showResult, reducedMotion ? 80 : 520);
+  }
+
+  board.addEventListener("pointerup", evt => {
+    const zone = detectSector(evt);
+    if (zone) selectZone(zone);
+  });
+
+  throwBtn.addEventListener("pointerdown", startCharging);
+  throwBtn.addEventListener("pointerup", evt => { if (locked) nextOrThrow(); else releaseThrow(evt); });
+  throwBtn.addEventListener("pointerleave", evt => { if (isCharging) releaseThrow(evt); });
+  throwBtn.addEventListener("pointercancel", evt => { if (isCharging) releaseThrow(evt); });
+
+  restartBtn.addEventListener("click", startGame);
+  playAgainBtn.addEventListener("click", startGame);
+  window.addEventListener("pagehide", stopPowerLoop);
+
+  buildLegend();
+  startGame();
+})();
+</script>
+</body>
+</html>
